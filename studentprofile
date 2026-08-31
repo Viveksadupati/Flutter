@@ -1,0 +1,111 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(
+    MaterialApp(
+      title: "Student Profile Card",
+      home: Scaffold(
+        backgroundColor: Colors.blueGrey[50],
+        appBar: AppBar(
+          backgroundColor: Colors.blue,
+          centerTitle: true,
+          title: Text(
+            "Student Profile Card",
+            style: TextStyle(
+              fontSize: 25,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        body: Center(
+          child: Container(
+            width: 320,
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Color(0xff9ef9ff),
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey,
+                  blurRadius: 5,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircleAvatar(
+                  radius: 45,
+                  backgroundImage: AssetImage('web/assets/Student1.jpg'),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  "SADUPATI VIVEK",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  "Roll Number: 24PA1A05K2",
+                  style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 5),
+                Text(
+                  "Branch: CSE",
+                  style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 20),
+                Container(
+                  margin: EdgeInsets.all(8),
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey,
+                        blurRadius: 3,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.phone),
+                      SizedBox(width: 10),
+                      Text("9876543210"),
+                    ],
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.all(8),
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Color(0xffebffec),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey,
+                        blurRadius: 3,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.email),
+                      SizedBox(width: 10),
+                      Text("vivek@example.com"),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}

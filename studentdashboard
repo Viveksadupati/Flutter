@@ -1,0 +1,210 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: StudentDashboard(),
+    ),
+  );
+}
+
+class StudentDashboard extends StatefulWidget {
+  const StudentDashboard({super.key});
+
+  @override
+  State<StudentDashboard> createState() => _StudentDashboardState();
+}
+
+class _StudentDashboardState extends State<StudentDashboard> {
+  bool notification = false;
+  int counter = 0;
+
+  Widget featureBox(IconData icon, String text) {
+    return Column(
+      children: [
+        Container(
+          height: 70,
+          width: 70,
+          decoration: BoxDecoration(
+            color: Colors.blue.shade100,
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Icon(
+            icon,
+            color: Colors.blue,
+            size: 35,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          text,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Student Dashboard"),
+        backgroundColor: Colors.blue,
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Image.asset(
+                  "web/assets/wallpaper.jpg",
+                  width: double.infinity,
+                  height: 220,
+                  fit: BoxFit.cover,
+                ),
+                Positioned(
+                  left: 20,
+                  bottom: -40,
+                  child: CircleAvatar(
+                    radius: 45,
+                    backgroundImage: const AssetImage("web/assets/unnamed.jpg"),
+                  ),
+                ),
+                const Positioned(
+                  left: 120,
+                  bottom: 25,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "SADUPATI VIVEK",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        "Computer Science Student",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 60),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                featureBox(Icons.menu_book, "Books"),
+                featureBox(Icons.assignment, "Tasks"),
+                featureBox(Icons.school, "Marks"),
+                featureBox(Icons.person, "Profile"),
+              ],
+            ),
+            const SizedBox(height: 30),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: notification
+                      ? () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Login Button Pressed"),
+                            ),
+                          );
+                        }
+                      : null,
+                  child: const Text("Login"),
+                ),
+                OutlinedButton(
+                  onPressed: notification
+                      ? () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Register Button Pressed"),
+                            ),
+                          );
+                        }
+                      : null,
+                  child: const Text("Register"),
+                ),
+              ],
+            ),
+            const SizedBox(height: 30),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  "Notifications",
+                  style: TextStyle(fontSize: 20),
+                ),
+                Switch(
+                  value: notification,
+                  onChanged: (value) {
+                    setState(() {
+                      notification = value;
+                    });
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              "Counter",
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "$counter",
+              style: const TextStyle(
+                fontSize: 45,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: notification
+                      ? () {
+                          setState(() {
+                            counter++;
+                          });
+                        }
+                      : null,
+                  child: const Text("+"),
+                ),
+                ElevatedButton(
+                  onPressed: notification
+                      ? () {
+                          setState(() {
+                            counter--;
+                          });
+                        }
+                      : null,
+                  child: const Text("-"),
+                ),
+              ],
+            ),
+            const SizedBox(height: 30),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -1,0 +1,514 @@
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+void main() => runApp(const App());
+class App extends StatelessWidget {
+  const App({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'HydroTrack',
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.blue,
+        scaffoldBackgroundColor: const Color(0xffF4F9FF),
+      ),
+      home: const Home(),
+    );
+  }
+}
+class Home extends StatefulWidget {
+  const Home({super.key});
+  @override
+  State<Home> createState() => _HomeState();
+}
+class _HomeState extends State<Home> {
+  int water = 0, goal = 2000, entries = 0;
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+  Future<void> load() async {
+    final p = await SharedPreferences.getInstance();
+    setState(() {
+      water = p.getInt('water') ?? 0;
+      goal = p.getInt('goal') ?? 2000;
+      entries = p.getInt('entries') ?? 0;
+    });
+  }
+  Future<void> save() async {
+    final p = await SharedPreferences.getInstance();
+    await p.setInt('water', water);
+    await p.setInt('goal', goal);
+    await p.setInt('entries', entries);
+  }
+  void add(int amount) {
+    if (amount <= 0) return;
+    setState(() {
+      water += amount;
+      entries++;
+    });
+    save();
+  }
+  void goalDialog() {
+    final c = TextEditingController(text: '$goal');
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Set Daily Goal'),
+        content: TextField(
+          controller: c,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Goal in ml',
+            prefixIcon: Icon(Icons.flag),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final n = int.tryParse(c.text);
+              if (n == null || n <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Enter a valid goal')),
+                );
+                return;
+              }
+              setState(() => goal = n);
+              save();
+              Navigator.pop(context);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+  void customDialog() {
+    final c = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Add Water'),
+        content: TextField(
+          controller: c,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Amount in ml',
+            prefixIcon: Icon(Icons.water_drop),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final n = int.tryParse(c.text);
+              if (n == null || n <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Enter amount greater than 0')),
+                );
+                return;
+              }
+              add(n);
+              Navigator.pop(context);
+            },
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+  }
+  void reset() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Reset Today?'),
+        content: const Text('Delete today\'s water intake?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              setState(() {
+                water = 0;
+                entries = 0;
+              });
+              save();
+              Navigator.pop(context);
+            },
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+  }
+  Widget stat(String value, String title, IconData icon) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: Colors.blue),
+            const SizedBox(height: 5),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(title, style: const TextStyle(color: Colors.grey, fontSize: 11)),
+          ],
+        ),
+      ),
+    );
+  }
+  Widget quick(String text, int amount) {
+    return Expanded(
+      child: ElevatedButton(
+        onPressed: () => add(amount),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.blue,
+          padding: const EdgeInsets.symmetric(vertical: 18),
+        ),
+        child: Text(text),
+      ),
+    );
+  }
+  @override
+  Widget build(BuildContext context) {
+    double progress = (water / goal).clamp(0.0, 1.0);
+    int percent = ((water / goal) * 100).round().clamp(0, 100);
+    int remaining = (goal - water).clamp(0, goal);
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'HydroTrack 💧',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const Info()),
+            ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          children: [
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Stay Hydrated!',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Track your daily water intake',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Progress
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(25),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Colors.blue, Color(0xff42A5F5)],
+                ),
+                borderRadius: BorderRadius.circular(28),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'TODAY\'S PROGRESS',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      SizedBox(
+                        height: 170,
+                        width: 170,
+                        child: CircularProgressIndicator(
+                          value: progress,
+                          strokeWidth: 15,
+                          backgroundColor: Colors.white24,
+                          valueColor:
+                              const AlwaysStoppedAnimation(Colors.white),
+                        ),
+                      ),
+                      Column(
+                        children: [
+                          Text(
+                            '$percent%',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '$water / $goal ml',
+                            style: const TextStyle(color: Colors.white70),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+                  Text(
+                    remaining == 0
+                        ? '🎉 Goal Completed!'
+                        : '$remaining ml remaining',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 15),
+            // Goal
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: goalDialog,
+                icon: const Icon(Icons.flag),
+                label: Text('Daily Goal: $goal ml  •  Modify'),
+              ),
+            ),
+            const SizedBox(height: 15),
+            // Statistics
+            Row(
+              children: [
+                stat('$water ml', 'Consumed', Icons.water_drop),
+                const SizedBox(width: 8),
+                stat('$remaining ml', 'Remaining', Icons.hourglass_bottom),
+                const SizedBox(width: 8),
+                stat('$entries', 'Entries', Icons.list_alt),
+              ],
+            ),
+            const SizedBox(height: 25),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Quick Add',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                quick('250 ml', 250),
+                const SizedBox(width: 8),
+                quick('500 ml', 500),
+                const SizedBox(width: 8),
+                quick('750 ml', 750),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: customDialog,
+                icon: const Icon(Icons.add),
+                label: const Text('Custom Amount'),
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Tip
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xfffff8e8),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.lightbulb, color: Colors.orange),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Keep a water bottle nearby and drink water regularly.',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 15),
+            TextButton.icon(
+              onPressed: reset,
+              icon: const Icon(Icons.refresh, color: Colors.red),
+              label: const Text(
+                'Reset Today',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+// ============================================================
+// INFO SCREEN
+// ============================================================
+class Info extends StatelessWidget {
+  const Info({super.key});
+
+  Widget feature(IconData icon, String title, String text) {
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Colors.blue.shade50,
+          child: Icon(icon, color: Colors.blue),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(text),
+      ),
+    );
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('About HydroTrack')),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(25),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Colors.blue, Color(0xff42A5F5)],
+                ),
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: const Column(
+                children: [
+                  Icon(
+                    Icons.water_drop,
+                    size: 60,
+                    color: Colors.white,
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'HydroTrack',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 5),
+                  Text(
+                    'Your daily hydration companion',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 25),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Features',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            feature(
+              Icons.flag,
+              'Personal Goal',
+              'Set and modify your daily water target.',
+            ),
+            feature(
+              Icons.add_circle,
+              'Easy Tracking',
+              'Add 250, 500, 750 ml or a custom amount.',
+            ),
+            feature(
+              Icons.analytics,
+              'Progress',
+              'View percentage, consumed and remaining water.',
+            ),
+            feature(
+              Icons.save,
+              'Local Storage',
+              'Your data is saved on your device.',
+            ),
+            const SizedBox(height: 15),
+            const Text(
+              'How to use',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              '1. Set your daily goal.\n'
+              '2. Add water whenever you drink.\n'
+              '3. Monitor your progress.\n'
+              '4. Reach your daily goal! 🎉',
+              style: TextStyle(
+                fontSize: 15,
+                height: 1.8,
+              ),
+            ),
+            const SizedBox(height: 25),
+            const Text(
+              'Stay hydrated. Stay healthy. 💙',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
